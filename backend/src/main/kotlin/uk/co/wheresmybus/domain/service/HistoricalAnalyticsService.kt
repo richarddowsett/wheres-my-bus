@@ -1,17 +1,17 @@
-package uk.co.wheresmybus.engine
+package uk.co.wheresmybus.domain.service
 
-import uk.co.wheresmybus.bods.BodsClient
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.DailyReliabilityRecord
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.DisruptionSituation
-import uk.co.wheresmybus.model.HistoricalStatsResponse
-import uk.co.wheresmybus.model.HistoricalTripRecord
-import uk.co.wheresmybus.model.HistoryBatchSummary
-import uk.co.wheresmybus.model.LiveBusStatus
-import uk.co.wheresmybus.model.LiveVehicle
-import uk.co.wheresmybus.model.VehicleJourney
-import uk.co.wheresmybus.repository.BusStateRepository
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.DailyReliabilityRecord
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.DisruptionSituation
+import uk.co.wheresmybus.domain.model.HistoricalStatsResponse
+import uk.co.wheresmybus.domain.model.HistoricalTripRecord
+import uk.co.wheresmybus.domain.model.HistoryBatchSummary
+import uk.co.wheresmybus.domain.model.LiveBusStatus
+import uk.co.wheresmybus.domain.model.LiveVehicle
+import uk.co.wheresmybus.domain.model.VehicleJourney
+import uk.co.wheresmybus.domain.port.outbound.BusStatePersistencePort
+import uk.co.wheresmybus.domain.port.outbound.TransitFeedPort
 import java.time.LocalDate
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -24,16 +24,16 @@ class HistoricalAnalyticsService {
     }
 
     suspend fun backfillPastWeek(
-        repository: BusStateRepository,
-        bodsClient: BodsClient,
+        persistencePort: BusStatePersistencePort,
+        transitFeedPort: TransitFeedPort,
         now: ZonedDateTime,
         days: Int = DEFAULT_HISTORY_DAYS,
     ): HistoryBatchSummary {
         val clampedDays = days.coerceIn(1, MAX_HISTORY_DAYS)
-        val timetable = repository.getTimetable()
+        val timetable = persistencePort.getTimetable()
         val allStops =
             (timetable.outboundStops.map { it.atcoCode } + timetable.inboundStops.map { it.atcoCode }).toSet()
-        val activeDisruptions = bodsClient.fetchDisruptions(allStops)
+        val activeDisruptions = transitFeedPort.fetchDisruptions(allStops)
         val commuteJourneys = selectSchoolCommuteJourneys(timetable.journeys)
         val today = now.toLocalDate()
         val generated = mutableListOf<HistoricalTripRecord>()
@@ -56,7 +56,7 @@ class HistoricalAnalyticsService {
         }
 
         val nowIso = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        repository.upsertHistoricalRecords(generated, nowIso)
+        persistencePort.upsertHistoricalRecords(generated, nowIso)
         return HistoryBatchSummary(
             mode = "INITIAL_7_DAY_BACKFILL",
             daysProcessed = clampedDays,
@@ -66,19 +66,19 @@ class HistoricalAnalyticsService {
     }
 
     suspend fun runDailyBatch(
-        repository: BusStateRepository,
-        bodsClient: BodsClient,
+        persistencePort: BusStatePersistencePort,
+        transitFeedPort: TransitFeedPort,
         now: ZonedDateTime,
     ): HistoryBatchSummary {
-        val timetable = repository.getTimetable()
+        val timetable = persistencePort.getTimetable()
         val allStops =
             (timetable.outboundStops.map { it.atcoCode } + timetable.inboundStops.map { it.atcoCode }).toSet()
-        val liveVehicles = bodsClient.fetchLiveVehicles()
-        val disruptions = bodsClient.fetchDisruptions(allStops)
+        val liveVehicles = transitFeedPort.fetchLiveVehicles()
+        val disruptions = transitFeedPort.fetchDisruptions(allStops)
         val commuteJourneys = selectSchoolCommuteJourneys(timetable.journeys)
         val todayIso = now.toLocalDate().format(DateTimeFormatter.ISO_LOCAL_DATE)
         val existingTodayByCode =
-            repository.getHistoricalRecords()
+            persistencePort.getHistoricalRecords()
                 .filter { it.dateIso == todayIso }
                 .associateBy { "${it.journeyCode}:${it.direction.name}" }
 
@@ -100,7 +100,7 @@ class HistoricalAnalyticsService {
             }
 
         val nowIso = now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        repository.upsertHistoricalRecords(todayRecords, nowIso)
+        persistencePort.upsertHistoricalRecords(todayRecords, nowIso)
         return HistoryBatchSummary(
             mode = "DAILY_INCREMENTAL_BATCH",
             daysProcessed = 1,
@@ -110,7 +110,7 @@ class HistoricalAnalyticsService {
     }
 
     suspend fun recordLiveObservation(
-        repository: BusStateRepository,
+        persistencePort: BusStatePersistencePort,
         liveStatus: LiveBusStatus,
         now: ZonedDateTime,
     ) {
@@ -126,22 +126,22 @@ class HistoricalAnalyticsService {
                 status = liveStatus.status,
                 summaryNote = liveStatus.statusHeadline,
             )
-        repository.upsertHistoricalRecords(
+        persistencePort.upsertHistoricalRecords(
             listOf(record),
             now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
         )
     }
 
     suspend fun computeStats(
-        repository: BusStateRepository,
-        bodsClient: BodsClient,
+        persistencePort: BusStatePersistencePort,
+        transitFeedPort: TransitFeedPort,
         now: ZonedDateTime,
         days: Int = DEFAULT_HISTORY_DAYS,
         directionFilter: Direction? = null,
     ): HistoricalStatsResponse {
         val clampedDays = days.coerceIn(1, MAX_HISTORY_DAYS)
-        if (repository.getHistoricalRecords().isEmpty()) {
-            backfillPastWeek(repository, bodsClient, now, clampedDays)
+        if (persistencePort.getHistoricalRecords().isEmpty()) {
+            backfillPastWeek(persistencePort, transitFeedPort, now, clampedDays)
         }
 
         val cutoffIso =
@@ -150,7 +150,7 @@ class HistoricalAnalyticsService {
                 .format(DateTimeFormatter.ISO_LOCAL_DATE)
 
         val filtered =
-            repository.getHistoricalRecords().filter { record ->
+            persistencePort.getHistoricalRecords().filter { record ->
                 record.dateIso >= cutoffIso &&
                     (directionFilter == null || record.direction == directionFilter)
             }
@@ -192,7 +192,7 @@ class HistoricalAnalyticsService {
                 }
 
         val lastSync =
-            repository.getLastHistorySyncIso()
+            persistencePort.getLastHistorySyncIso()
                 ?: now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 
         return HistoricalStatsResponse(

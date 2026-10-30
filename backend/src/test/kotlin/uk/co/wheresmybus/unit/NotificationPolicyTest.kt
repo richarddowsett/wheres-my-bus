@@ -1,10 +1,10 @@
 package uk.co.wheresmybus.unit
 
-import uk.co.wheresmybus.bods.TransXChangeParser
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.LiveBusStatus
-import uk.co.wheresmybus.notifications.NotificationPolicy
+import uk.co.wheresmybus.adapter.outbound.bods.TransXChangeParser
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.LiveBusStatus
+import uk.co.wheresmybus.domain.service.NotificationPolicy
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

@@ -1,11 +1,11 @@
 package uk.co.wheresmybus.unit
 
-import uk.co.wheresmybus.bods.TransXChangeParser
-import uk.co.wheresmybus.engine.Route21MonitorEngine
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.DisruptionSituation
-import uk.co.wheresmybus.model.LiveVehicle
+import uk.co.wheresmybus.adapter.outbound.bods.TransXChangeParser
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.DisruptionSituation
+import uk.co.wheresmybus.domain.model.LiveVehicle
+import uk.co.wheresmybus.domain.service.Route21MonitorEngine
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.Test

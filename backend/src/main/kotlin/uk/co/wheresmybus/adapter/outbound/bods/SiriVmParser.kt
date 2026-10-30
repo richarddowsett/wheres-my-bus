@@ -1,8 +1,8 @@
-package uk.co.wheresmybus.bods
+package uk.co.wheresmybus.adapter.outbound.bods
 
 import org.w3c.dom.Element
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.LiveVehicle
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.LiveVehicle
 
 class SiriVmParser {
     fun parse(xmlContent: String): List<LiveVehicle> {

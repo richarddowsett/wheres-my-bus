@@ -1,7 +1,7 @@
-package uk.co.wheresmybus.bods
+package uk.co.wheresmybus.adapter.outbound.bods
 
 import org.w3c.dom.Element
-import uk.co.wheresmybus.model.DisruptionSituation
+import uk.co.wheresmybus.domain.model.DisruptionSituation
 
 class SiriSxParser {
     fun parse(

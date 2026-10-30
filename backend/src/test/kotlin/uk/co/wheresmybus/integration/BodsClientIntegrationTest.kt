@@ -7,7 +7,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
-import uk.co.wheresmybus.bods.BodsClient
+import uk.co.wheresmybus.adapter.outbound.bods.BodsTransitFeedAdapter
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -100,7 +100,7 @@ class BodsClientIntegrationTest {
                 }
 
             val client =
-                BodsClient(
+                BodsTransitFeedAdapter(
                     httpClient = HttpClient(mockEngine),
                     apiKey = "test-bods-key",
                     baseUrl = "https://data.bus-data.dft.gov.uk/api/v1",
@@ -128,7 +128,7 @@ class BodsClientIntegrationTest {
                 }
 
             val failingClient =
-                BodsClient(
+                BodsTransitFeedAdapter(
                     httpClient = HttpClient(failingEngine),
                     apiKey = "test-bods-key",
                 )
@@ -140,7 +140,7 @@ class BodsClientIntegrationTest {
             assertTrue(failingClient.fetchDisruptions(emptySet()).isEmpty())
 
             val blankKeyClient =
-                BodsClient(
+                BodsTransitFeedAdapter(
                     httpClient = HttpClient(failingEngine),
                     apiKey = "",
                 )

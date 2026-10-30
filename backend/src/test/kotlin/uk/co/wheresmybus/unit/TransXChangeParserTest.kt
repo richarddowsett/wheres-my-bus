@@ -1,7 +1,7 @@
 package uk.co.wheresmybus.unit
 
-import uk.co.wheresmybus.bods.TransXChangeParser
-import uk.co.wheresmybus.model.Direction
+import uk.co.wheresmybus.adapter.outbound.bods.TransXChangeParser
+import uk.co.wheresmybus.domain.model.Direction
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

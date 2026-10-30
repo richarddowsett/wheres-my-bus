@@ -15,18 +15,19 @@ import io.ktor.http.contentType
 import io.ktor.http.headersOf
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
-import uk.co.wheresmybus.bods.BodsClient
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.DeviceSubscription
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.HistoricalStatsResponse
-import uk.co.wheresmybus.model.HistoryBatchSummary
-import uk.co.wheresmybus.model.LiveBusStatus
-import uk.co.wheresmybus.model.RouteStop
-import uk.co.wheresmybus.model.WatchRequest
+import uk.co.wheresmybus.adapter.outbound.bods.BodsTransitFeedAdapter
+import uk.co.wheresmybus.adapter.outbound.notifications.LoggingNotificationAdapter
+import uk.co.wheresmybus.adapter.outbound.persistence.InMemoryPersistenceAdapter
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.DeviceSubscription
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.HistoricalStatsResponse
+import uk.co.wheresmybus.domain.model.HistoryBatchSummary
+import uk.co.wheresmybus.domain.model.LiveBusStatus
+import uk.co.wheresmybus.domain.model.RouteStop
+import uk.co.wheresmybus.domain.model.WatchRequest
+import uk.co.wheresmybus.domain.port.outbound.TransitFeedPort
 import uk.co.wheresmybus.module
-import uk.co.wheresmybus.notifications.LoggingPushNotificationDispatcher
-import uk.co.wheresmybus.repository.InMemoryBusStateRepository
 import java.nio.file.Files
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -39,7 +40,7 @@ class ApiRoutesIntegrationTest {
     private val fixedMorningClock =
         ZonedDateTime.of(2026, 10, 30, 7, 45, 0, 0, ZoneId.of("Europe/London"))
 
-    private fun createMockBodsClient(): BodsClient {
+    private fun createMockBodsClient(): TransitFeedPort {
         val mockEngine =
             MockEngine { request ->
                 val path = request.url.encodedPath
@@ -78,7 +79,7 @@ class ApiRoutesIntegrationTest {
                         )
                 }
             }
-        return BodsClient(HttpClient(mockEngine), apiKey = "test-key")
+        return BodsTransitFeedAdapter(HttpClient(mockEngine), apiKey = "test-key")
     }
 
     @Test
@@ -86,9 +87,9 @@ class ApiRoutesIntegrationTest {
         testApplication {
             application {
                 module(
-                    repository = InMemoryBusStateRepository(),
-                    bodsClient = createMockBodsClient(),
-                    pushDispatcher = LoggingPushNotificationDispatcher(),
+                    persistencePort = InMemoryPersistenceAdapter(),
+                    transitFeedPort = createMockBodsClient(),
+                    notificationDispatchPort = LoggingNotificationAdapter(),
                     familyPin = "2121",
                     clockProvider = { fixedMorningClock },
                 )
@@ -122,9 +123,9 @@ class ApiRoutesIntegrationTest {
         testApplication {
             application {
                 module(
-                    repository = InMemoryBusStateRepository(),
-                    bodsClient = createMockBodsClient(),
-                    pushDispatcher = LoggingPushNotificationDispatcher(),
+                    persistencePort = InMemoryPersistenceAdapter(),
+                    transitFeedPort = createMockBodsClient(),
+                    notificationDispatchPort = LoggingNotificationAdapter(),
                     familyPin = "2121",
                     clockProvider = { fixedMorningClock },
                 )
@@ -215,9 +216,9 @@ class ApiRoutesIntegrationTest {
 
             application {
                 module(
-                    repository = InMemoryBusStateRepository(),
-                    bodsClient = createMockBodsClient(),
-                    pushDispatcher = LoggingPushNotificationDispatcher(),
+                    persistencePort = InMemoryPersistenceAdapter(),
+                    transitFeedPort = createMockBodsClient(),
+                    notificationDispatchPort = LoggingNotificationAdapter(),
                     familyPin = "2121",
                     staticAssetsDir = tempStaticDir.toString(),
                     clockProvider = { fixedMorningClock },

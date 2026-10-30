@@ -1,44 +1,18 @@
-package uk.co.wheresmybus.repository
+package uk.co.wheresmybus.adapter.outbound.persistence
 
-import uk.co.wheresmybus.bods.TransXChangeParser
-import uk.co.wheresmybus.model.DeviceSubscription
-import uk.co.wheresmybus.model.HistoricalTripRecord
-import uk.co.wheresmybus.model.RouteTimetable
-import uk.co.wheresmybus.model.TripNotificationState
-import uk.co.wheresmybus.model.WatchSession
+import uk.co.wheresmybus.domain.model.DeviceSubscription
+import uk.co.wheresmybus.domain.model.HistoricalTripRecord
+import uk.co.wheresmybus.domain.model.RouteTimetable
+import uk.co.wheresmybus.domain.model.TripNotificationState
+import uk.co.wheresmybus.domain.model.WatchSession
+import uk.co.wheresmybus.domain.port.outbound.BusStatePersistencePort
+import uk.co.wheresmybus.domain.service.DefaultRoute21Timetable
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
-interface BusStateRepository {
-    suspend fun getTimetable(): RouteTimetable
-
-    suspend fun saveTimetable(timetable: RouteTimetable)
-
-    suspend fun upsertSubscription(subscription: DeviceSubscription)
-
-    suspend fun getSubscriptions(): List<DeviceSubscription>
-
-    suspend fun saveWatchSession(session: WatchSession)
-
-    suspend fun getActiveWatchSessions(nowEpochSeconds: Long): List<WatchSession>
-
-    suspend fun getNotificationState(subscriptionKey: String): TripNotificationState?
-
-    suspend fun saveNotificationState(state: TripNotificationState)
-
-    suspend fun upsertHistoricalRecords(
-        records: List<HistoricalTripRecord>,
-        syncIso: String,
-    )
-
-    suspend fun getHistoricalRecords(): List<HistoricalTripRecord>
-
-    suspend fun getLastHistorySyncIso(): String?
-}
-
-class InMemoryBusStateRepository(
-    initialTimetable: RouteTimetable = TransXChangeParser.defaultRoute21Timetable(),
-) : BusStateRepository {
+class InMemoryPersistenceAdapter(
+    initialTimetable: RouteTimetable = DefaultRoute21Timetable.create(),
+) : BusStatePersistencePort {
     private val timetableRef = AtomicReference(initialTimetable)
     private val subscriptions = ConcurrentHashMap<String, DeviceSubscription>()
     private val watchSessions = ConcurrentHashMap<String, WatchSession>()
@@ -67,9 +41,7 @@ class InMemoryBusStateRepository(
         return watchSessions.values.toList()
     }
 
-    override suspend fun getNotificationState(subscriptionKey: String): TripNotificationState? {
-        return notificationStates[subscriptionKey]
-    }
+    override suspend fun getNotificationState(subscriptionKey: String): TripNotificationState? = notificationStates[subscriptionKey]
 
     override suspend fun saveNotificationState(state: TripNotificationState) {
         notificationStates[state.subscriptionKey] = state

@@ -161,6 +161,16 @@ resource "google_cloud_run_v2_service" "app" {
       }
 
       env {
+        name  = "GCP_PROJECT_ID"
+        value = var.project_id
+      }
+
+      env {
+        name  = "STORAGE_MODE"
+        value = "FIRESTORE"
+      }
+
+      env {
         name = "FAMILY_PIN"
         value_source {
           secret_key_ref {

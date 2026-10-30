@@ -14,16 +14,16 @@ import io.ktor.http.contentType
 import io.ktor.http.headersOf
 import io.ktor.server.testing.testApplication
 import kotlinx.serialization.json.Json
-import uk.co.wheresmybus.bods.BodsClient
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.DeviceSubscription
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.PollSummary
-import uk.co.wheresmybus.model.WatchRequest
+import uk.co.wheresmybus.adapter.outbound.bods.BodsTransitFeedAdapter
+import uk.co.wheresmybus.adapter.outbound.notifications.LoggingNotificationAdapter
+import uk.co.wheresmybus.adapter.outbound.persistence.InMemoryPersistenceAdapter
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.DeviceSubscription
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.PollSummary
+import uk.co.wheresmybus.domain.model.WatchRequest
+import uk.co.wheresmybus.domain.service.NotificationPolicy
 import uk.co.wheresmybus.module
-import uk.co.wheresmybus.notifications.LoggingPushNotificationDispatcher
-import uk.co.wheresmybus.notifications.NotificationPolicy
-import uk.co.wheresmybus.repository.InMemoryBusStateRepository
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.concurrent.atomic.AtomicInteger
@@ -74,14 +74,18 @@ class PollToPushPipelineIntegrationTest {
                     ZonedDateTime.of(2026, 10, 30, 7, 42, 0, 0, ZoneId.of("Europe/London")),
                 )
             val delayStep = AtomicInteger(1)
-            val dispatcher = LoggingPushNotificationDispatcher()
-            val repo = InMemoryBusStateRepository()
+            val dispatcher = LoggingNotificationAdapter()
+            val repo = InMemoryPersistenceAdapter()
 
             application {
                 module(
-                    repository = repo,
-                    bodsClient = BodsClient(HttpClient(buildDynamicBodsEngine(delayStep)), apiKey = "live-key"),
-                    pushDispatcher = dispatcher,
+                    persistencePort = repo,
+                    transitFeedPort =
+                        BodsTransitFeedAdapter(
+                            HttpClient(buildDynamicBodsEngine(delayStep)),
+                            apiKey = "live-key",
+                        ),
+                    notificationDispatchPort = dispatcher,
                     familyPin = "2121",
                     clockProvider = { currentClock.get() },
                 )

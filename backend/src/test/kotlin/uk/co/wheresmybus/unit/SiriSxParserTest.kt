@@ -1,6 +1,6 @@
 package uk.co.wheresmybus.unit
 
-import uk.co.wheresmybus.bods.SiriSxParser
+import uk.co.wheresmybus.adapter.outbound.bods.SiriSxParser
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

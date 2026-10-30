@@ -7,13 +7,13 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import kotlinx.coroutines.runBlocking
-import uk.co.wheresmybus.bods.BodsClient
-import uk.co.wheresmybus.bods.TransXChangeParser
-import uk.co.wheresmybus.engine.HistoricalAnalyticsService
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.LiveBusStatus
-import uk.co.wheresmybus.repository.InMemoryBusStateRepository
+import uk.co.wheresmybus.adapter.outbound.bods.BodsTransitFeedAdapter
+import uk.co.wheresmybus.adapter.outbound.bods.TransXChangeParser
+import uk.co.wheresmybus.adapter.outbound.persistence.InMemoryPersistenceAdapter
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.LiveBusStatus
+import uk.co.wheresmybus.domain.service.HistoricalAnalyticsService
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.Test
@@ -25,7 +25,7 @@ class HistoricalAnalyticsServiceTest {
     private val london = ZoneId.of("Europe/London")
     private val now = ZonedDateTime.of(2026, 10, 30, 19, 0, 0, 0, london)
 
-    private fun createBodsClient(siriSxXml: String = "<Siri/>"): BodsClient {
+    private fun createBodsClient(siriSxXml: String = "<Siri/>"): BodsTransitFeedAdapter {
         val mock =
             MockEngine { req ->
                 val xmlHeaders = headersOf(HttpHeaders.ContentType, "application/xml")
@@ -57,13 +57,13 @@ class HistoricalAnalyticsServiceTest {
                     )
                 }
             }
-        return BodsClient(HttpClient(mock), apiKey = "test-key")
+        return BodsTransitFeedAdapter(HttpClient(mock), apiKey = "test-key")
     }
 
     @Test
     fun `backfills past 7 days of historical data and computes reliability statistics`() =
         runBlocking {
-            val repo = InMemoryBusStateRepository()
+            val repo = InMemoryPersistenceAdapter()
             val bods = createBodsClient()
 
             val summary = service.backfillPastWeek(repo, bods, now, days = 7)
@@ -106,7 +106,7 @@ class HistoricalAnalyticsServiceTest {
     @Test
     fun `daily batch incorporates live observations and BODS SIRI-VM delays`() =
         runBlocking {
-            val repo = InMemoryBusStateRepository()
+            val repo = InMemoryPersistenceAdapter()
             val bods = createBodsClient()
             val stops = TransXChangeParser.defaultOutboundStops()
 

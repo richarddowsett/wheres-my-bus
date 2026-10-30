@@ -1,15 +1,12 @@
-package uk.co.wheresmybus.notifications
+package uk.co.wheresmybus.adapter.outbound.notifications
 
 import org.slf4j.LoggerFactory
-import uk.co.wheresmybus.model.PushNotificationPayload
+import uk.co.wheresmybus.domain.model.PushNotificationPayload
+import uk.co.wheresmybus.domain.port.outbound.NotificationDispatchPort
 import java.util.concurrent.CopyOnWriteArrayList
 
-interface PushNotificationDispatcher {
-    suspend fun send(payload: PushNotificationPayload): Boolean
-}
-
-class LoggingPushNotificationDispatcher : PushNotificationDispatcher {
-    private val logger = LoggerFactory.getLogger(LoggingPushNotificationDispatcher::class.java)
+class LoggingNotificationAdapter : NotificationDispatchPort {
+    private val logger = LoggerFactory.getLogger(LoggingNotificationAdapter::class.java)
     private val dispatchedHistory = CopyOnWriteArrayList<PushNotificationPayload>()
 
     override suspend fun send(payload: PushNotificationPayload): Boolean {

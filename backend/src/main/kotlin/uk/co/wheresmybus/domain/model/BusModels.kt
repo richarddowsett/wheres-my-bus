@@ -1,4 +1,4 @@
-package uk.co.wheresmybus.model
+package uk.co.wheresmybus.domain.model
 
 import kotlinx.serialization.Serializable
 
@@ -231,4 +231,13 @@ data class HistoryBatchSummary(
     val daysProcessed: Int,
     val recordsUpserted: Int,
     val completedAtIso: String,
+)
+
+@Serializable
+data class TimetableSyncSummary(
+    val operatorCode: String,
+    val lineName: String,
+    val outboundStopCount: Int,
+    val inboundStopCount: Int,
+    val journeyCount: Int,
 )

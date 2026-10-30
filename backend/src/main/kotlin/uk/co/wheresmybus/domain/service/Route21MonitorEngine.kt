@@ -1,15 +1,15 @@
-package uk.co.wheresmybus.engine
+package uk.co.wheresmybus.domain.service
 
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.Direction
-import uk.co.wheresmybus.model.DisruptionSituation
-import uk.co.wheresmybus.model.LiveBusStatus
-import uk.co.wheresmybus.model.LiveVehicle
-import uk.co.wheresmybus.model.RouteStop
-import uk.co.wheresmybus.model.RouteTimetable
-import uk.co.wheresmybus.model.TimingLink
-import uk.co.wheresmybus.model.UpcomingDeparture
-import uk.co.wheresmybus.model.VehicleJourney
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.Direction
+import uk.co.wheresmybus.domain.model.DisruptionSituation
+import uk.co.wheresmybus.domain.model.LiveBusStatus
+import uk.co.wheresmybus.domain.model.LiveVehicle
+import uk.co.wheresmybus.domain.model.RouteStop
+import uk.co.wheresmybus.domain.model.RouteTimetable
+import uk.co.wheresmybus.domain.model.TimingLink
+import uk.co.wheresmybus.domain.model.UpcomingDeparture
+import uk.co.wheresmybus.domain.model.VehicleJourney
 import java.time.LocalTime
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter

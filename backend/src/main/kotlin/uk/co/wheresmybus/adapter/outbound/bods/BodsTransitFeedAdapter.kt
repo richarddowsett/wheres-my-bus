@@ -1,28 +1,30 @@
-package uk.co.wheresmybus.bods
+package uk.co.wheresmybus.adapter.outbound.bods
 
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import uk.co.wheresmybus.model.DisruptionSituation
-import uk.co.wheresmybus.model.LiveVehicle
-import uk.co.wheresmybus.model.RouteTimetable
+import uk.co.wheresmybus.domain.model.DisruptionSituation
+import uk.co.wheresmybus.domain.model.LiveVehicle
+import uk.co.wheresmybus.domain.model.RouteTimetable
+import uk.co.wheresmybus.domain.port.outbound.TransitFeedPort
+import uk.co.wheresmybus.domain.service.DefaultRoute21Timetable
 
-class BodsClient(
+class BodsTransitFeedAdapter(
     private val httpClient: HttpClient,
     private val apiKey: String,
     private val baseUrl: String = "https://data.bus-data.dft.gov.uk/api/v1",
     private val transXChangeParser: TransXChangeParser = TransXChangeParser(),
     private val siriVmParser: SiriVmParser = SiriVmParser(),
     private val siriSxParser: SiriSxParser = SiriSxParser(),
-) {
-    suspend fun fetchRoute21Timetable(
-        noc: String = "NIBS",
-        lineRef: String = "21",
+) : TransitFeedPort {
+    override suspend fun fetchRoute21Timetable(
+        noc: String,
+        lineRef: String,
     ): RouteTimetable {
         if (apiKey.isBlank() || apiKey == "replace-with-bods-api-key") {
-            return TransXChangeParser.defaultRoute21Timetable()
+            return DefaultRoute21Timetable.create()
         }
         return runCatching {
             val response =
@@ -32,20 +34,20 @@ class BodsClient(
                     parameter("api_key", apiKey)
                 }
             if (!response.status.isSuccess()) {
-                return TransXChangeParser.defaultRoute21Timetable()
+                return DefaultRoute21Timetable.create()
             }
             val body = response.bodyAsText()
             if (body.trimStart().startsWith("<")) {
                 transXChangeParser.parse(body)
             } else {
-                TransXChangeParser.defaultRoute21Timetable()
+                DefaultRoute21Timetable.create()
             }
-        }.getOrElse { TransXChangeParser.defaultRoute21Timetable() }
+        }.getOrElse { DefaultRoute21Timetable.create() }
     }
 
-    suspend fun fetchLiveVehicles(
-        operatorRef: String = "NIBS",
-        lineRef: String = "21",
+    override suspend fun fetchLiveVehicles(
+        operatorRef: String,
+        lineRef: String,
     ): List<LiveVehicle> {
         if (apiKey.isBlank() || apiKey == "replace-with-bods-api-key") {
             return emptyList()
@@ -65,7 +67,7 @@ class BodsClient(
         }.getOrElse { emptyList() }
     }
 
-    suspend fun fetchDisruptions(route21Stops: Set<String>): List<DisruptionSituation> {
+    override suspend fun fetchDisruptions(route21Stops: Set<String>): List<DisruptionSituation> {
         if (apiKey.isBlank() || apiKey == "replace-with-bods-api-key") {
             return emptyList()
         }

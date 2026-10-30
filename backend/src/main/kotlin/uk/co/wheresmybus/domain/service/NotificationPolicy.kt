@@ -1,9 +1,9 @@
-package uk.co.wheresmybus.notifications
+package uk.co.wheresmybus.domain.service
 
-import uk.co.wheresmybus.model.BusAlertStatus
-import uk.co.wheresmybus.model.LiveBusStatus
-import uk.co.wheresmybus.model.PushNotificationPayload
-import uk.co.wheresmybus.model.TripNotificationState
+import uk.co.wheresmybus.domain.model.BusAlertStatus
+import uk.co.wheresmybus.domain.model.LiveBusStatus
+import uk.co.wheresmybus.domain.model.PushNotificationPayload
+import uk.co.wheresmybus.domain.model.TripNotificationState
 
 class NotificationPolicy {
     fun evaluateNotifications(
