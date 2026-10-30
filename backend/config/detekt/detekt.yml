@@ -1,0 +1,24 @@
+complexity:
+  LongMethod:
+    active: true
+    threshold: 90
+  LongParameterList:
+    active: true
+    functionThreshold: 10
+    constructorThreshold: 12
+  CyclomaticComplexMethod:
+    active: true
+    threshold: 25
+  TooManyFunctions:
+    active: false
+
+style:
+  MagicNumber:
+    active: false
+  MaxLineLength:
+    active: true
+    maxLineLength: 120
+  ReturnCount:
+    active: false
+  WildcardImport:
+    active: false

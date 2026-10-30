@@ -1,0 +1,13 @@
+.git
+.gitignore
+webapp/node_modules/
+webapp/dist/
+webapp/coverage/
+webapp/.expo/
+backend/.gradle/
+backend/.kotlin/
+backend/build/
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/terraform.tfvars
+.DS_Store

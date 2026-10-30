@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "Where's My Bus 21",
+    "slug": "wheres-my-bus-21",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "uk.co.wheresmybus.route21"
+    },
+    "android": {
+      "package": "uk.co.wheresmybus.route21"
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "single"
+    }
+  }
+}

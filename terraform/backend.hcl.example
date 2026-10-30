@@ -1,0 +1,2 @@
+bucket = "wheres-my-bus-513220-tfstate"
+prefix = "wheres-my-bus/state"

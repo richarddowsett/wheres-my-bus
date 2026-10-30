@@ -1,0 +1,20 @@
+terraform {
+  required_version = ">= 1.5.0"
+
+  backend "gcs" {
+    bucket = "wheres-my-bus-513220-tfstate"
+    prefix = "wheres-my-bus/state"
+  }
+
+  required_providers {
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 5.40"
+    }
+  }
+}
+
+provider "google" {
+  project = var.project_id
+  region  = var.region
+}

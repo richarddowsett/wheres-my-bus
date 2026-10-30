@@ -1,0 +1,5 @@
+project_id             = "wheres-my-bus-513220"
+region                 = "europe-west1"
+container_image        = "europe-west1-docker.pkg.dev/wheres-my-bus-513220/wheres-my-bus/backend:latest"
+bods_api_key_secret_id = "bods-api-key"
+family_pin             = "2121"
