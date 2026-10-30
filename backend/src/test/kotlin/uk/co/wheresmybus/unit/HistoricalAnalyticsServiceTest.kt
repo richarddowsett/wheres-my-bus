@@ -100,7 +100,7 @@ class HistoricalAnalyticsServiceTest {
             val sixMonthStats = service.computeStats(repo, bods, now)
             assertEquals(180, sixMonthStats.windowDays)
             assertEquals(900, sixMonthStats.totalScheduledRuns)
-            assertEquals(180, sixMonthStats.dailyBreakdown.size)
+            assertEquals(7, sixMonthStats.dailyBreakdown.size)
         }
 
     @Test

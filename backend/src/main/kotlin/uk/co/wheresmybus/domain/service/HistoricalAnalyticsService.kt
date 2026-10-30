@@ -175,6 +175,7 @@ class HistoricalAnalyticsService {
                 .groupBy { it.dateIso }
                 .entries
                 .sortedByDescending { it.key }
+                .take(7)
                 .map { (dateIso, dayRecords) ->
                     DailyReliabilityRecord(
                         dateIso = dateIso,

@@ -89,8 +89,8 @@ export const HistoryTabView: React.FC<HistoryTabViewProps> = ({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Daily Breakdown (Last 6 Months)</Text>
-        {stats.dailyBreakdown.map((day) => (
+        <Text style={styles.sectionTitle}>Daily Breakdown (Last 7 Days)</Text>
+        {stats.dailyBreakdown.slice(0, 7).map((day) => (
           <View
             key={day.dateIso}
             testID={`daily-history-row-${day.dateIso}`}
