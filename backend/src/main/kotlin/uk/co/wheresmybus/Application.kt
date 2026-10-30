@@ -44,6 +44,7 @@ fun Application.module(
     notificationPolicy: NotificationPolicy = NotificationPolicy(),
     pushDispatcher: PushNotificationDispatcher = LoggingPushNotificationDispatcher(),
     familyPin: String = System.getenv("FAMILY_PIN") ?: "2121",
+    staticAssetsDir: String = System.getenv("STATIC_ASSETS_DIR") ?: "/app/static",
     clockProvider: () -> ZonedDateTime = { ZonedDateTime.now(ZoneId.of("Europe/London")) },
 ) {
     install(ContentNegotiation) {
@@ -75,6 +76,7 @@ fun Application.module(
             notificationPolicy = notificationPolicy,
             pushDispatcher = pushDispatcher,
             familyPin = familyPin,
+            staticAssetsDir = staticAssetsDir,
             clockProvider = clockProvider,
         )
     }

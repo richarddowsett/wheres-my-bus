@@ -20,14 +20,17 @@ import {
   RouteStop,
 } from '../types/bus';
 import {
+  ActiveTab,
   flipDirection,
   formatCountdownLabel,
   getDefaultDirection,
   getDirectionTitle,
+  getPathnameForTab,
   getStatusTheme,
+  getTabFromPathname,
 } from '../utils/commuteUtils';
 
-export type ActiveTab = 'LIVE' | 'HISTORY';
+export type { ActiveTab };
 
 export interface DashboardScreenProps {
   apiClient: BusApiClient;
@@ -38,7 +41,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   apiClient,
   initialHour = new Date().getHours(),
 }) => {
-  const [activeTab, setActiveTab] = useState<ActiveTab>('LIVE');
+  const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
+    if (typeof window !== 'undefined' && window.location?.pathname) {
+      return getTabFromPathname(window.location.pathname);
+    }
+    return 'LIVE';
+  });
   const [direction, setDirection] = useState<Direction>(() =>
     getDefaultDirection(initialHour),
   );
@@ -89,7 +97,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
   const loadHistory = useCallback(async () => {
     setErrorMessage(null);
     try {
-      const stats = await apiClient.fetchHistoricalStats(7);
+      const stats = await apiClient.fetchHistoricalStats(180);
       setHistoryStats(stats);
     } catch (err) {
       setErrorMessage(
@@ -109,6 +117,37 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
       void loadHistory();
     }
   }, [activeTab, loadHistory]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+    const currentPath = window.location?.pathname ?? '/';
+    const resolvedTab = getTabFromPathname(currentPath);
+    const canonicalPath = getPathnameForTab(resolvedTab);
+    if (currentPath !== canonicalPath && window.history?.replaceState) {
+      window.history.replaceState({ tab: resolvedTab }, '', canonicalPath);
+    }
+
+    const handlePopState = () => {
+      setActiveTab(getTabFromPathname(window.location?.pathname ?? '/'));
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  const handleSelectTab = (nextTab: ActiveTab) => {
+    setActiveTab(nextTab);
+    if (typeof window !== 'undefined' && window.history?.pushState) {
+      const targetPath = getPathnameForTab(nextTab);
+      if (window.location?.pathname !== targetPath) {
+        window.history.pushState({ tab: nextTab }, '', targetPath);
+      }
+    }
+  };
 
   const handleToggleDirection = () => {
     const nextDir = flipDirection(direction);
@@ -154,12 +193,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
 
   const handleRunWeekBackfill = async () => {
     try {
-      await apiClient.triggerWeekBackfill(7);
+      await apiClient.triggerWeekBackfill(180);
       await loadHistory();
-      setSubscriptionNotice('Loaded 7-day historical backfill (Today - 1 Week).');
+      setSubscriptionNotice('Loaded 6-month (180-day) historical backfill.');
     } catch (err) {
       setErrorMessage(
-        err instanceof Error ? err.message : '7-day backfill failed',
+        err instanceof Error ? err.message : '6-month backfill failed',
       );
     }
   };
@@ -222,7 +261,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             styles.tabButton,
             activeTab === 'LIVE' && styles.tabButtonActive,
           ]}
-          onPress={() => setActiveTab('LIVE')}
+          onPress={() => handleSelectTab('LIVE')}
         >
           <Text
             style={[
@@ -239,7 +278,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
             styles.tabButton,
             activeTab === 'HISTORY' && styles.tabButtonActive,
           ]}
-          onPress={() => setActiveTab('HISTORY')}
+          onPress={() => handleSelectTab('HISTORY')}
         >
           <Text
             style={[
@@ -247,7 +286,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({
               activeTab === 'HISTORY' && styles.tabButtonTextActive,
             ]}
           >
-            📊 Historical Data (7-Day)
+            📊 Historical Data (6-Month)
           </Text>
         </Pressable>
       </View>

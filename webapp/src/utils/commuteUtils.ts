@@ -1,5 +1,19 @@
 import { BusAlertStatus, Direction } from '../types/bus';
 
+export type ActiveTab = 'LIVE' | 'HISTORY';
+
+export function getTabFromPathname(pathname: string): ActiveTab {
+  const normalized = pathname.trim().toLowerCase().replace(/\/+$/, '');
+  if (normalized === '/history' || normalized.endsWith('/history')) {
+    return 'HISTORY';
+  }
+  return 'LIVE';
+}
+
+export function getPathnameForTab(tab: ActiveTab): string {
+  return tab === 'HISTORY' ? '/history' : '/live';
+}
+
 export interface StatusTheme {
   label: string;
   badgeBackground: string;

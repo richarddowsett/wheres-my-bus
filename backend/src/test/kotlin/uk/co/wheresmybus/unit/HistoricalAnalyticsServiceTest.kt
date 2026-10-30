@@ -92,6 +92,15 @@ class HistoricalAnalyticsServiceTest {
                     directionFilter = Direction.BRENTWOOD_TO_ONGAR,
                 )
             assertEquals(21, morningStats.totalScheduledRuns)
+
+            val sixMonthSummary = service.backfillPastWeek(repo, bods, now)
+            assertEquals(180, sixMonthSummary.daysProcessed)
+            assertEquals(900, sixMonthSummary.recordsUpserted)
+
+            val sixMonthStats = service.computeStats(repo, bods, now)
+            assertEquals(180, sixMonthStats.windowDays)
+            assertEquals(900, sixMonthStats.totalScheduledRuns)
+            assertEquals(180, sixMonthStats.dailyBreakdown.size)
         }
 
     @Test

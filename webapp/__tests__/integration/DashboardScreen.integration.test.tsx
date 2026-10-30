@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { BusApiClient } from '../../src/api/apiClient';
 import { DashboardScreen } from '../../src/screens/DashboardScreen';
 import {
@@ -152,11 +152,14 @@ describe('DashboardScreen Integration', () => {
       expiresAtEpochSeconds: 1800000000,
     });
 
+    window.history.replaceState({}, '', '/');
+
     render(<DashboardScreen apiClient={mockClient} initialHour={7} />);
 
     await waitFor(() => {
       expect(screen.getByTestId('live-countdown-card')).toBeInTheDocument();
     });
+    expect(window.location.pathname).toBe('/live');
 
     expect(screen.getByTestId('direction-title')).toHaveTextContent(
       'Morning School Run: Brentwood → Ongar',
@@ -186,6 +189,7 @@ describe('DashboardScreen Integration', () => {
     await waitFor(() => {
       expect(screen.getByTestId('history-tab-view')).toBeInTheDocument();
     });
+    expect(window.location.pathname).toBe('/history');
 
     expect(screen.getByTestId('history-ontime-pct')).toHaveTextContent('71.4%');
     expect(screen.getByTestId('history-late-pct')).toHaveTextContent('20%');
@@ -200,6 +204,20 @@ describe('DashboardScreen Integration', () => {
     fireEvent.click(screen.getByTestId('run-week-backfill-button'));
     await waitFor(() => {
       expect(backfillSpy).toHaveBeenCalledTimes(1);
+    });
+
+    fireEvent.click(screen.getByTestId('tab-live-monitor'));
+    await waitFor(() => {
+      expect(screen.getByTestId('live-countdown-card')).toBeInTheDocument();
+    });
+    expect(window.location.pathname).toBe('/live');
+
+    act(() => {
+      window.history.pushState({ tab: 'HISTORY' }, '', '/history');
+      window.dispatchEvent(new PopStateEvent('popstate'));
+    });
+    await waitFor(() => {
+      expect(screen.getByTestId('history-tab-view')).toBeInTheDocument();
     });
   });
 });

@@ -17,7 +17,7 @@ export const HistoryTabView: React.FC<HistoryTabViewProps> = ({
   if (!stats) {
     return (
       <View testID="history-empty-state" style={styles.card}>
-        <Text style={styles.sectionTitle}>Loading 7-Day Route 21 History...</Text>
+        <Text style={styles.sectionTitle}>Loading 6-Month Route 21 History...</Text>
       </View>
     );
   }
@@ -49,7 +49,7 @@ export const HistoryTabView: React.FC<HistoryTabViewProps> = ({
               onPress={onRunWeekBackfill}
             >
               <Text style={styles.secondaryBatchButtonText}>
-                ⟲ Reload 7-Day Data
+                ⟲ Reload 6-Month Data
               </Text>
             </Pressable>
           </View>
@@ -89,7 +89,7 @@ export const HistoryTabView: React.FC<HistoryTabViewProps> = ({
       </View>
 
       <View style={styles.card}>
-        <Text style={styles.sectionTitle}>Daily Breakdown (Today - 1 Week)</Text>
+        <Text style={styles.sectionTitle}>Daily Breakdown (Last 6 Months)</Text>
         {stats.dailyBreakdown.map((day) => (
           <View
             key={day.dateIso}

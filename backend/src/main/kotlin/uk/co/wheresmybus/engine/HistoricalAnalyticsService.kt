@@ -18,13 +18,18 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
 class HistoricalAnalyticsService {
+    companion object {
+        const val DEFAULT_HISTORY_DAYS = 180
+        const val MAX_HISTORY_DAYS = 365
+    }
+
     suspend fun backfillPastWeek(
         repository: BusStateRepository,
         bodsClient: BodsClient,
         now: ZonedDateTime,
-        days: Int = 7,
+        days: Int = DEFAULT_HISTORY_DAYS,
     ): HistoryBatchSummary {
-        val clampedDays = days.coerceIn(1, 30)
+        val clampedDays = days.coerceIn(1, MAX_HISTORY_DAYS)
         val timetable = repository.getTimetable()
         val allStops =
             (timetable.outboundStops.map { it.atcoCode } + timetable.inboundStops.map { it.atcoCode }).toSet()
@@ -131,10 +136,10 @@ class HistoricalAnalyticsService {
         repository: BusStateRepository,
         bodsClient: BodsClient,
         now: ZonedDateTime,
-        days: Int = 7,
+        days: Int = DEFAULT_HISTORY_DAYS,
         directionFilter: Direction? = null,
     ): HistoricalStatsResponse {
-        val clampedDays = days.coerceIn(1, 30)
+        val clampedDays = days.coerceIn(1, MAX_HISTORY_DAYS)
         if (repository.getHistoricalRecords().isEmpty()) {
             backfillPastWeek(repository, bodsClient, now, clampedDays)
         }

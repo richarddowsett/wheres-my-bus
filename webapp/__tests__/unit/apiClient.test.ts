@@ -118,14 +118,14 @@ describe('BusApiClient', () => {
         alightingAtco: '150032008001',
       }),
     ).rejects.toThrow('Failed to start watch session (500)');
-    await expect(client.fetchHistoricalStats(7)).rejects.toThrow(
+    await expect(client.fetchHistoricalStats(180)).rejects.toThrow(
       'Failed to fetch historical stats (500)',
     );
     await expect(client.triggerDailyHistoryBatch()).rejects.toThrow(
       'Failed to run daily history batch (500)',
     );
-    await expect(client.triggerWeekBackfill(7)).rejects.toThrow(
-      'Failed to run 7-day backfill (500)',
+    await expect(client.triggerWeekBackfill(180)).rejects.toThrow(
+      'Failed to run historical backfill (500)',
     );
   });
 });

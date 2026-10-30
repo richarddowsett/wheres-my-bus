@@ -4,7 +4,9 @@ import {
   formatCountdownLabel,
   getDefaultDirection,
   getDirectionTitle,
+  getPathnameForTab,
   getStatusTheme,
+  getTabFromPathname,
 } from '../../src/utils/commuteUtils';
 
 describe('commuteUtils', () => {
@@ -44,5 +46,15 @@ describe('commuteUtils', () => {
     expect(calculateRouteProgressPercent(1, 11)).toBe(0);
     expect(calculateRouteProgressPercent(6, 11)).toBe(50);
     expect(calculateRouteProgressPercent(11, 11)).toBe(100);
+  });
+
+  test('maps URL pathnames to active tabs and back', () => {
+    expect(getTabFromPathname('/')).toBe('LIVE');
+    expect(getTabFromPathname('/live')).toBe('LIVE');
+    expect(getTabFromPathname('/live/')).toBe('LIVE');
+    expect(getTabFromPathname('/history')).toBe('HISTORY');
+    expect(getTabFromPathname('/history/')).toBe('HISTORY');
+    expect(getPathnameForTab('LIVE')).toBe('/live');
+    expect(getPathnameForTab('HISTORY')).toBe('/history');
   });
 });

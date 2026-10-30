@@ -102,7 +102,7 @@ export class BusApiClient {
   }
 
   async fetchHistoricalStats(
-    days = 7,
+    days = 180,
     direction?: Direction,
   ): Promise<HistoricalStatsResponse> {
     const params = new URLSearchParams({ days: String(days) });
@@ -132,14 +132,14 @@ export class BusApiClient {
     return (await response.json()) as HistoryBatchSummary;
   }
 
-  async triggerWeekBackfill(days = 7): Promise<HistoryBatchSummary> {
+  async triggerWeekBackfill(days = 180): Promise<HistoryBatchSummary> {
     const url = `${this.baseUrl}/api/internal/backfill-history?days=${days}`;
     const response = await this.fetchFn(url, {
       method: 'POST',
       headers: this.buildHeaders(false),
     });
     if (!response.ok) {
-      throw new Error(`Failed to run 7-day backfill (${response.status})`);
+      throw new Error(`Failed to run historical backfill (${response.status})`);
     }
     return (await response.json()) as HistoryBatchSummary;
   }

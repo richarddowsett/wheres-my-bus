@@ -5,6 +5,7 @@ import io.ktor.server.application.ApplicationCall
 import io.ktor.server.http.content.staticFiles
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
+import io.ktor.server.response.respondFile
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -58,6 +59,7 @@ fun Route.configureApiRoutes(
     notificationPolicy: NotificationPolicy,
     pushDispatcher: PushNotificationDispatcher,
     familyPin: String,
+    staticAssetsDir: String = System.getenv("STATIC_ASSETS_DIR") ?: "/app/static",
     clockProvider: () -> ZonedDateTime = { ZonedDateTime.now(ZoneId.of("Europe/London")) },
 ) {
     route("/api") {
@@ -113,7 +115,9 @@ fun Route.configureApiRoutes(
 
         get("/history") {
             val now = clockProvider()
-            val days = call.request.queryParameters["days"]?.toIntOrNull() ?: 7
+            val days =
+                call.request.queryParameters["days"]?.toIntOrNull()
+                    ?: HistoricalAnalyticsService.DEFAULT_HISTORY_DAYS
             val directionFilter = parseOptionalDirection(call.request.queryParameters["direction"])
             val stats =
                 historicalAnalyticsService.computeStats(
@@ -181,7 +185,9 @@ fun Route.configureApiRoutes(
 
         post("/internal/backfill-history") {
             val now = clockProvider()
-            val days = call.request.queryParameters["days"]?.toIntOrNull() ?: 7
+            val days =
+                call.request.queryParameters["days"]?.toIntOrNull()
+                    ?: HistoricalAnalyticsService.DEFAULT_HISTORY_DAYS
             val summary =
                 historicalAnalyticsService.backfillPastWeek(
                     repository = repository,
@@ -307,8 +313,13 @@ fun Route.configureApiRoutes(
         }
     }
 
-    val staticDir = File(System.getenv("STATIC_ASSETS_DIR") ?: "/app/static")
+    val staticDir = File(staticAssetsDir)
     if (staticDir.exists() && staticDir.isDirectory) {
+        val indexFile = File(staticDir, "index.html")
+        if (indexFile.exists()) {
+            get("/live") { call.respondFile(indexFile) }
+            get("/history") { call.respondFile(indexFile) }
+        }
         staticFiles("/", staticDir) {
             default("index.html")
         }

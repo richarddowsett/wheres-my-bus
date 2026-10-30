@@ -27,6 +27,7 @@ import uk.co.wheresmybus.model.WatchRequest
 import uk.co.wheresmybus.module
 import uk.co.wheresmybus.notifications.LoggingPushNotificationDispatcher
 import uk.co.wheresmybus.repository.InMemoryBusStateRepository
+import java.nio.file.Files
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import kotlin.test.Test
@@ -204,5 +205,29 @@ class ApiRoutesIntegrationTest {
             assertEquals(7, historyStats.windowDays)
             assertEquals(7, historyStats.dailyBreakdown.size)
             assertTrue(historyStats.totalScheduledRuns >= 30)
+        }
+
+    @Test
+    fun `GET live and history frontend routes serve SPA index html`() =
+        testApplication {
+            val tempStaticDir = Files.createTempDirectory("spa-static")
+            Files.writeString(tempStaticDir.resolve("index.html"), "<html><body>Route 21 SPA</body></html>")
+
+            application {
+                module(
+                    repository = InMemoryBusStateRepository(),
+                    bodsClient = createMockBodsClient(),
+                    pushDispatcher = LoggingPushNotificationDispatcher(),
+                    familyPin = "2121",
+                    staticAssetsDir = tempStaticDir.toString(),
+                    clockProvider = { fixedMorningClock },
+                )
+            }
+
+            for (path in listOf("/", "/live", "/history")) {
+                val res = client.get(path)
+                assertEquals(HttpStatusCode.OK, res.status)
+                assertTrue(res.bodyAsText().contains("Route 21 SPA"))
+            }
         }
 }
