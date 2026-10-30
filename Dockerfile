@@ -11,19 +11,21 @@ ENV EXPO_NO_TELEMETRY="1"
 RUN npm run build:web
 
 # ------------------------------------------------------------------------------
-# Stage 2: Build Kotlin + Ktor server distribution (backend/)
+# Stage 2: Build Kotlin + Ktor server distribution on JDK 27 (backend/)
 # ------------------------------------------------------------------------------
-FROM gradle:8.12-jdk17 AS backend-build
+FROM eclipse-temurin:27-jdk AS backend-build
 WORKDIR /backend
+COPY backend/gradlew ./
+COPY backend/gradle ./gradle
 COPY backend/settings.gradle.kts backend/build.gradle.kts ./
 COPY backend/config ./config
 COPY backend/src ./src
-RUN gradle installDist --no-daemon
+RUN chmod +x ./gradlew && ./gradlew installDist --no-daemon
 
 # ------------------------------------------------------------------------------
-# Stage 3: Final Cloud Run container (Ktor API + Bundled Web SPA)
+# Stage 3: Final Cloud Run container (Ktor API + Bundled Web SPA on JRE 27)
 # ------------------------------------------------------------------------------
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:27-jre
 WORKDIR /app
 COPY --from=backend-build /backend/build/install/wheres-my-bus-backend /app
 COPY --from=webapp-build /webapp/dist /app/static

@@ -72,7 +72,7 @@ gcloud iam service-accounts keys create /tmp/gcp-sa-key.json \
 
 ```bash
 cd backend
-export JAVA_HOME=/opt/homebrew/opt/openjdk@17/libexec/openjdk.jdk/Contents/Home
+export JAVA_HOME=/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home
 export BODS_API_KEY="your-bods-api-key" # optional: uses bundled NIBS Route 21 timetable if omitted
 export FAMILY_PIN="2121"
 ./gradlew run

@@ -43,7 +43,33 @@ dependencies {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(27)
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_23)
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    sourceCompatibility = "23"
+    targetCompatibility = "23"
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "22"
+    jdkHome.set(null as File?)
+    val originalJavaVersion = System.getProperty("java.version")
+    val originalSpecVersion = System.getProperty("java.specification.version")
+    val originalRuntimeVersion = System.getProperty("java.runtime.version")
+    doFirst {
+        System.setProperty("java.version", "21")
+        System.setProperty("java.specification.version", "21")
+        System.setProperty("java.runtime.version", "21")
+    }
+    doLast {
+        if (originalJavaVersion != null) System.setProperty("java.version", originalJavaVersion)
+        if (originalSpecVersion != null) System.setProperty("java.specification.version", originalSpecVersion)
+        if (originalRuntimeVersion != null) System.setProperty("java.runtime.version", originalRuntimeVersion)
+    }
 }
 
 application {

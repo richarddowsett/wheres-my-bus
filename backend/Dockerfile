@@ -1,11 +1,13 @@
-FROM gradle:8.12-jdk17 AS build
+FROM eclipse-temurin:27-jdk AS build
 WORKDIR /app
+COPY gradlew ./
+COPY gradle ./gradle
 COPY settings.gradle.kts build.gradle.kts ./
 COPY config ./config
 COPY src ./src
-RUN gradle installDist --no-daemon
+RUN chmod +x ./gradlew && ./gradlew installDist --no-daemon
 
-FROM eclipse-temurin:17-jre-jammy
+FROM eclipse-temurin:27-jre
 WORKDIR /app
 COPY --from=build /app/build/install/wheres-my-bus-backend /app
 EXPOSE 8080
